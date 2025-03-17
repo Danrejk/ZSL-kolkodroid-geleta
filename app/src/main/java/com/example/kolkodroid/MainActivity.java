@@ -1,77 +1,95 @@
-package com.example.kolkodroid;
+package com.example.tictactoe;
 
 import android.os.Bundle;
-
-import com.google.android.material.snackbar.Snackbar;
-
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.view.View;
-
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
-import androidx.navigation.ui.AppBarConfiguration;
-import androidx.navigation.ui.NavigationUI;
-
-import com.example.kolkodroid.databinding.ActivityMainBinding;
-
-import android.view.Menu;
-import android.view.MenuItem;
+import android.widget.Button;
+import android.widget.TextView;
+import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
 
-    private AppBarConfiguration appBarConfiguration;
-    private ActivityMainBinding binding;
+    private String currentPlayer = "X";
+    private int moves = 0;
+    private Button[] cells = new Button[9];
+    private TextView infoBox;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
 
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
+        // Initialize the cells
+        cells[0] = findViewById(R.id.cell1);
+        cells[1] = findViewById(R.id.cell2);
+        cells[2] = findViewById(R.id.cell3);
+        cells[3] = findViewById(R.id.cell4);
+        cells[4] = findViewById(R.id.cell5);
+        cells[5] = findViewById(R.id.cell6);
+        cells[6] = findViewById(R.id.cell7);
+        cells[7] = findViewById(R.id.cell8);
+        cells[8] = findViewById(R.id.cell9);
 
-        setSupportActionBar(binding.toolbar);
+        infoBox = findViewById(R.id.infoBox);
 
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
-        appBarConfiguration = new AppBarConfiguration.Builder(navController.getGraph()).build();
-        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
-
-        binding.fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAnchorView(R.id.fab)
-                        .setAction("Action", null).show();
-            }
-        });
+        // Set up click listeners for each cell
+        for (int i = 0; i < cells.length; i++) {
+            final int index = i;
+            cells[i].setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    onCellClick(index);
+                }
+            });
+        }
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
+    private void onCellClick(int index) {
+        Button cell = cells[index];
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        // Check if the cell is already clicked
+        if (!cell.getText().toString().equals("")) {
+            return;
         }
 
-        return super.onOptionsItemSelected(item);
+        // Place the current player's mark
+        cell.setText(currentPlayer);
+        moves++;
+
+        // Check for winner
+        String winner = calculateWinner();
+        if (!winner.equals("")) {
+            infoBox.setText("Winner: " + winner);
+            return;
+        }
+
+        // Check if it's a draw
+        if (moves == 9) {
+            infoBox.setText("Draw!");
+            return;
+        }
+
+        // Change to the next player
+        currentPlayer = (currentPlayer.equals("X")) ? "O" : "X";
+        infoBox.setText("Next player: " + currentPlayer);
     }
 
-    @Override
-    public boolean onSupportNavigateUp() {
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
-        return NavigationUI.navigateUp(navController, appBarConfiguration)
-                || super.onSupportNavigateUp();
+    private String calculateWinner() {
+        int[][] winningPatterns = {
+                {0, 1, 2}, {3, 4, 5}, {6, 7, 8}, // Rows
+                {0, 3, 6}, {1, 4, 7}, {2, 5, 8}, // Columns
+                {0, 4, 8}, {2, 4, 6}             // Diagonals
+        };
+
+        for (int[] pattern : winningPatterns) {
+            String a = cells[pattern[0]].getText().toString();
+            String b = cells[pattern[1]].getText().toString();
+            String c = cells[pattern[2]].getText().toString();
+
+            if (a.equals(b) && b.equals(c) && !a.equals("")) {
+                return a; // X or O
+            }
+        }
+
+        return ""; // No winner yet
     }
 }
